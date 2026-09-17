@@ -61,8 +61,8 @@ import java.awt.datatransfer.StringSelection
 private const val APP_TITLE = "CatosResourceCalc"
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication, state = rememberWindowState(width = 1_060.dp, height = 700.dp), title = APP_TITLE) {
-        window.minimumSize = Dimension(860, 560)
+    Window(onCloseRequest = ::exitApplication, state = rememberWindowState(width = 1_280.dp, height = 720.dp), title = APP_TITLE) {
+        window.minimumSize = Dimension(1_080, 560)
         window.background = AwtColor(0x1E, 0x16, 0x14)
         CatosResourceCalcTheme {
             LaunchedEffect(window) { WindowsTitleBar.apply(window) }
@@ -95,19 +95,24 @@ private fun ResourceCalcApp() {
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 SearchPanel(query, results, plan.mapTo(mutableSetOf()) { it.itemId }, { item -> plan = plan.addOrIncrement(item.id); copyFeedback = null }, Modifier.weight(.92f).fillMaxHeight())
-                PlanPanel(
+                BuildPlanPanel(
                     data = data,
                     plan = plan,
-                    calculation = calculation.getOrNull(),
-                    calculationError = calculation.exceptionOrNull(),
-                    copyFeedback = copyFeedback,
                     onIncrease = { plan = plan.changeQuantity(it, 1) },
                     onDecrease = { plan = plan.changeQuantity(it, -1) },
                     onSetQuantity = { id, quantity -> plan = plan.setQuantity(id, quantity) },
                     onRemove = { id -> plan = plan.filterNot { it.itemId == id } },
                     onClear = { showClear = true },
-                    onCopy = { calculation.getOrNull()?.let { copyToClipboard(formatTotals(data, it)); copyFeedback = "Copied totals to clipboard" } },
-                    Modifier.weight(1.08f).fillMaxHeight(),
+                    Modifier.weight(.92f).fillMaxHeight(),
+                )
+                TotalsPanel(
+                    data = data,
+                    plan = plan,
+                    calculation = calculation.getOrNull(),
+                    calculationError = calculation.exceptionOrNull(),
+                    copyFeedback = copyFeedback,
+                    onCopy = { calculation.getOrNull()?.let { copyToClipboard(formatTotals(data, plan, it)); copyFeedback = "Copied totals to clipboard" } },
+                    Modifier.weight(1.02f).fillMaxHeight(),
                 )
             }
             Spacer(Modifier.height(14.dp))
@@ -125,9 +130,12 @@ private fun ResourceCalcApp() {
 }
 
 private fun List<PlanEntry>.addOrIncrement(id: String): List<PlanEntry> = if (any { it.itemId == id }) map { if (it.itemId == id) it.copy(quantity = it.quantity.safelyAdd(1)) else it } else this + PlanEntry(id, 1)
-private fun List<PlanEntry>.changeQuantity(id: String, delta: Long): List<PlanEntry> = map {
-    if (it.itemId != id) it
-    else it.copy(quantity = if (delta > 0) it.quantity.safelyAdd(delta) else (it.quantity + delta).coerceAtLeast(1))
+private fun List<PlanEntry>.changeQuantity(id: String, delta: Long): List<PlanEntry> {
+    if (delta < 0 && firstOrNull { it.itemId == id }?.quantity == 1L) return filterNot { it.itemId == id }
+    return map {
+        if (it.itemId != id) it
+        else it.copy(quantity = if (delta > 0) it.quantity.safelyAdd(delta) else (it.quantity + delta).coerceAtLeast(1))
+    }
 }
 private fun List<PlanEntry>.setQuantity(id: String, quantity: Long): List<PlanEntry> = map { if (it.itemId == id && quantity > 0) it.copy(quantity = quantity) else it }
 private fun Long.safelyAdd(value: Long): Long = if (this == Long.MAX_VALUE) this else this + value
@@ -173,22 +181,54 @@ private fun SearchPanel(query: String, results: List<ItemRecord>, selectedIds: S
 }
 
 @Composable
-private fun PlanPanel(data: DataIndex, plan: List<PlanEntry>, calculation: CalculationResult?, calculationError: Throwable?, copyFeedback: String?, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onRemove: (String) -> Unit, onClear: () -> Unit, onCopy: () -> Unit, modifier: Modifier) {
+private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onRemove: (String) -> Unit, onClear: () -> Unit, modifier: Modifier) {
     MochaPanel("BUILD PLAN", "${plan.size} selected target${if (plan.size == 1) "" else "s"}", modifier) {
         if (plan.isEmpty()) {
-            Spacer(Modifier.height(22.dp)); Text("Your build plan is empty", style = MaterialTheme.typography.titleMedium); Spacer(Modifier.height(6.dp)); Text("Choose an item from search to begin.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Your build plan is empty", style = MaterialTheme.typography.titleMedium)
+                    Spacer(Modifier.height(6.dp))
+                    Text("Choose an item from search to begin.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+                }
+            }
         } else {
             Spacer(Modifier.height(10.dp))
             Text("SELECTED TARGETS", style = MaterialTheme.typography.labelMedium, color = MochaColors.TextSecondary)
             Spacer(Modifier.height(5.dp))
-            LazyColumn(Modifier.weight(.42f), verticalArrangement = Arrangement.spacedBy(5.dp)) { items(plan, key = { it.itemId }) { entry -> PlanRow(data.itemsById.getValue(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onRemove) } }
+            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                items(plan, key = { it.itemId }) { entry ->
+                    PlanRow(data.itemsById.getValue(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onRemove)
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            TextButton(onClick = onClear, modifier = Modifier.align(Alignment.End)) { Text("CLEAR PLAN", color = MochaColors.TextSecondary) }
         }
-        Spacer(Modifier.height(10.dp)); HorizontalDivider(color = MochaColors.Border); Spacer(Modifier.height(10.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("TOTAL MATERIALS", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f)); if (plan.isNotEmpty()) TextButton(onClick = onClear) { Text("CLEAR", color = MochaColors.TextSecondary) } }
-        if (calculationError != null) Text(calculationError.message ?: "Calculation failed", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
-        else if (calculation == null || calculation.totals.isEmpty()) Text("No base materials required.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
-        else Column(Modifier.weight(if (plan.isEmpty()) 1f else .58f).verticalScroll(rememberScrollState())) { calculation.totals.forEach { (id, quantity) -> Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) { Text(data.materialsById[id]?.name ?: id, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f)); Text(quantity.toString(), style = MaterialTheme.typography.titleMedium, color = MochaColors.AccentHover) } } }
-        Spacer(Modifier.height(10.dp)); Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text(copyFeedback ?: "Totals update as you edit quantities.", style = MaterialTheme.typography.bodySmall, color = if (copyFeedback != null) MochaColors.Success else MochaColors.TextSecondary, modifier = Modifier.weight(1f)); Button(onClick = onCopy, enabled = calculation != null && calculation.totals.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = MochaColors.Accent, contentColor = MochaColors.Background, disabledContainerColor = MochaColors.SurfaceHighest, disabledContentColor = MochaColors.TextSecondary)) { Text("COPY LIST") } }
+    }
+}
+
+@Composable
+private fun TotalsPanel(data: DataIndex, plan: List<PlanEntry>, calculation: CalculationResult?, calculationError: Throwable?, copyFeedback: String?, onCopy: () -> Unit, modifier: Modifier) {
+    MochaPanel("TOTAL MATERIALS", "${calculation?.totals?.size ?: 0} base materials", modifier) {
+        if (calculationError != null) {
+            Text(calculationError.message ?: "Calculation failed", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
+        } else if (calculation == null || calculation.totals.isEmpty()) {
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { Text(if (plan.isEmpty()) "Add items to see what you need." else "No base materials required.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary) }
+        } else {
+            Spacer(Modifier.height(10.dp))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                calculation.totals.forEach { (id, quantity) ->
+                    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(data.materialsById[id]?.name ?: id, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                        Text(quantity.toString(), style = MaterialTheme.typography.titleMedium, color = MochaColors.AccentHover)
+                    }
+                }
+            }
+        }
+        Spacer(Modifier.height(10.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(copyFeedback ?: "Totals update as you edit quantities.", style = MaterialTheme.typography.bodySmall, color = if (copyFeedback != null) MochaColors.Success else MochaColors.TextSecondary, modifier = Modifier.weight(1f))
+            Button(onClick = onCopy, enabled = calculation != null && calculation.totals.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = MochaColors.Accent, contentColor = MochaColors.Background, disabledContainerColor = MochaColors.SurfaceHighest, disabledContentColor = MochaColors.TextSecondary)) { Text("COPY LIST") }
+        }
     }
 }
 
@@ -223,5 +263,17 @@ private fun MochaPanel(title: String, subtitle: String, modifier: Modifier = Mod
 @Composable
 private fun fieldColors() = OutlinedTextFieldDefaults.colors(focusedTextColor = MochaColors.TextPrimary, unfocusedTextColor = MochaColors.TextPrimary, errorTextColor = MochaColors.TextPrimary, focusedContainerColor = MochaColors.Surface, unfocusedContainerColor = MochaColors.Surface, focusedPlaceholderColor = MochaColors.TextSecondary, unfocusedPlaceholderColor = MochaColors.TextSecondary, focusedBorderColor = MochaColors.AccentHover, unfocusedBorderColor = MochaColors.Border, focusedLabelColor = MochaColors.AccentHover, unfocusedLabelColor = MochaColors.TextSecondary, cursorColor = MochaColors.AccentHover, errorBorderColor = MochaColors.Error, errorLabelColor = MochaColors.Error)
 
-private fun formatTotals(data: DataIndex, result: CalculationResult): String = buildString { appendLine("CatosResourceCalc materials"); result.totals.forEach { (id, quantity) -> appendLine("$quantity × ${data.materialsById[id]?.name ?: id}") } }
+private fun formatTotals(data: DataIndex, plan: List<PlanEntry>, result: CalculationResult): String = buildString {
+    appendLine("Materials Needed")
+    appendLine()
+    appendLine("Craft:")
+    plan.forEach { target ->
+        appendLine("- ${data.itemsById[target.itemId]?.name ?: target.itemId} x${target.quantity}")
+    }
+    appendLine()
+    appendLine("Materials:")
+    result.totals.forEach { (id, quantity) ->
+        appendLine("- $quantity x ${data.materialsById[id]?.name ?: id}")
+    }
+}
 private fun copyToClipboard(text: String) { runCatching { Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null) } }

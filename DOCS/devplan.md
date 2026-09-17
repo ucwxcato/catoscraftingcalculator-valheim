@@ -88,6 +88,8 @@ Proposed compact layout:
 
 The exact pixel size is a tuning point, but the first usable window should fit on a normal laptop without requiring horizontal scrolling.
 
+The implemented MVP uses a wider three-column variant of this layout: item search on the left, the selected build plan in the middle, and an always-visible total-materials shopping list on the right. The build-plan rows are intentionally compact so multiple targets fit before scrolling.
+
 ### 3.2 Happy path
 
 1. Launch the application; bundled data loads and the data-source/version indicator appears.
@@ -96,7 +98,7 @@ The exact pixel size is a tuning point, but the first usable window should fit o
 4. Add it to the build plan. If it is already present, focus the existing row instead of creating a duplicate.
 5. Change quantity with plus/minus controls, direct numeric entry, or keyboard shortcuts. Quantity must be a positive whole number.
 6. The totals panel recomputes immediately and shows aggregated materials. Intermediate craftables may be expandable for explanation.
-7. Copy produces a stable plain-text list. Export, if enabled, writes the currently displayed calculation only.
+7. Copy produces a stable plain-text list headed `Materials Needed`, with the selected craft targets listed before their aggregated materials. Export, if enabled, writes the currently displayed calculation only.
 8. Clear removes the current plan only after the user confirms if it contains entries; no source data is changed.
 
 ### 3.3 Interaction rules
@@ -106,6 +108,7 @@ The exact pixel size is a tuning point, but the first usable window should fit o
 - Escape clears search/focuses the plan; Enter adds the highlighted result; arrow keys move through results.
 - Quantity input rejects zero, negatives, decimals, non-numeric text, and overflow with an inline message while retaining the last valid value.
 - Removing an item updates totals immediately and cannot alter another target.
+- Decreasing a target from quantity one removes it from the build plan, matching the compact stepper behavior.
 - Loading, invalid-data, and calculation-error states are explicit and actionable; no silent empty result is allowed.
 - The UI must remain usable with keyboard navigation and readable at a modest text scale.
 
@@ -424,6 +427,7 @@ Phase 0 findings as of 2026-09-17:
 - [ ] Add JSON and CSV export of the current calculation only, with safe escaping and a user-selected destination.
 - [ ] Add a compact-mode preference only if the default layout cannot remain clear at the target size.
 - [ ] Add optional display toggles for stations, intermediate components, and source version.
+- [ ] Add an optional “crafting station” section to the visible and copied result, showing each required bench/workstation and its required upgrade level (for example, Workbench Level 3).
 - [ ] Add a small About/source panel containing Valculator attribution and dataset commit.
 - [ ] Profile search and recalculation with the complete dataset; avoid premature caching that makes state stale.
 - [ ] **Verify:** Export files round-trip through parser tests, clipboard text matches visible totals, and the UI remains responsive with a full build plan.
