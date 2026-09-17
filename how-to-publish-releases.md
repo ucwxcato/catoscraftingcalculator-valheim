@@ -165,7 +165,7 @@ Pushing to `main` updates the source repository but does **not** create a public
 
 ## In-app updater
 
-The app now performs a non-blocking update check on launch and provides a manual **Check for updates** action in the About dialog:
+The app now performs a non-blocking update check on launch and provides a manual **Check for updates** action in the footer beside the source attribution. Clicking it opens the About dialog, where the result and release link are shown:
 
 1. Request the public GitHub Releases metadata over HTTPS.
 2. Compare the newest compatible release version with the app's current version.

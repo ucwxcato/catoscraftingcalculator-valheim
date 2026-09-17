@@ -163,7 +163,12 @@ private fun ResourceCalcApp() {
                 )
             }
             Spacer(Modifier.height(14.dp))
-            Text("Created by catosaurluna  ·  Crafting data imported from Valculator  ·  source ${data.snapshot.source.commit.take(8)}", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Created by catosaurluna  ·  Crafting data imported from Valculator  ·  source ${data.snapshot.source.commit.take(8)}", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary, modifier = Modifier.weight(1f))
+                TextButton(onClick = { showAbout = true; checkForUpdates(promptWhenAvailable = false) }) {
+                    Text("CHECK FOR UPDATES", color = MochaColors.AccentHover)
+                }
+            }
         }
     }
     if (showClear) AlertDialog(
@@ -174,7 +179,7 @@ private fun ResourceCalcApp() {
         confirmButton = { TextButton(onClick = { plan = emptyList(); copyFeedback = null; showClear = false }) { Text("CLEAR", color = MochaColors.AccentHover) } },
         dismissButton = { TextButton(onClick = { showClear = false }) { Text("CANCEL") } },
     )
-    if (showAbout) AboutDialog(data, updateState, onCheckForUpdates = { checkForUpdates(promptWhenAvailable = false) }) { showAbout = false }
+    if (showAbout) AboutDialog(data, updateState) { showAbout = false }
 }
 
 private fun List<PlanEntry>.addOrIncrement(id: String): List<PlanEntry> = if (any { it.itemId == id }) map { if (it.itemId == id) it.copy(quantity = it.quantity.safelyAdd(1)) else it } else this + PlanEntry(id, 1)
@@ -319,7 +324,7 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
 }
 
 @Composable
-private fun AboutDialog(data: DataIndex, updateState: UpdateState, onCheckForUpdates: () -> Unit, onDismiss: () -> Unit) {
+private fun AboutDialog(data: DataIndex, updateState: UpdateState, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MochaColors.SurfaceElevated,
@@ -350,7 +355,6 @@ private fun AboutDialog(data: DataIndex, updateState: UpdateState, onCheckForUpd
                         TextButton(onClick = { openUrl(state.info.releaseUrl) }) { Text("OPEN UPDATE RELEASE", color = MochaColors.AccentHover) }
                     }
                 }
-                TextButton(onClick = onCheckForUpdates) { Text("CHECK FOR UPDATES", color = MochaColors.AccentHover) }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("CLOSE") } },

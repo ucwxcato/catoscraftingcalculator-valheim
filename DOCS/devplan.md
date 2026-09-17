@@ -431,7 +431,7 @@ Phase 0 findings as of 2026-09-17:
 - [ ] Add optional display toggles for stations, intermediate components, and source version.
 - [x] Add a small About/source panel containing Valculator attribution and dataset commit.
 - [ ] Profile search and recalculation with the complete dataset; avoid premature caching that makes state stale.
-- [x] Add a non-blocking GitHub Releases update check on launch and a manual About-dialog action; show the release assets and keep offline use unaffected.
+- [x] Add a non-blocking GitHub Releases update check on launch and a footer **Check for updates** action; show the result and release assets in About while keeping offline use unaffected.
 - [ ] **Verify:** Export files round-trip through parser tests, clipboard text matches visible totals, and the UI remains responsive with a full build plan.
 
 ### Phase 6 - Packaging and release readiness
