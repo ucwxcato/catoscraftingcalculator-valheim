@@ -249,7 +249,7 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
         Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Column(Modifier.weight(1f)) {
-                    Text(item.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    Text(item.name, style = MaterialTheme.typography.titleMedium)
                     if (variants.isNotEmpty()) {
                         Box {
                             TextButton(onClick = { levelMenuExpanded = true }, contentPadding = ButtonDefaults.ContentPadding) { Text("Level ${item.level ?: 1} [v]", color = MochaColors.AccentHover) }
