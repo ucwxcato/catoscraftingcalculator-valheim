@@ -1,4 +1,5 @@
 import org.gradle.jvm.tasks.Jar
+import org.gradle.api.tasks.Exec
 
 plugins {
     kotlin("jvm") version "2.4.20"
@@ -43,4 +44,38 @@ tasks.withType<Jar>().configureEach {
         attributes["Implementation-Version"] = project.version
         attributes["Implementation-Vendor"] = "catosaurluna"
     }
+}
+
+val valculatorSourceDirectory = providers.gradleProperty("valculatorSource")
+    .map(::file)
+    .orElse(rootProject.projectDir.resolve("../valculator"))
+val generatedValheimData = layout.projectDirectory.file("src/main/resources/data/valheim-data.json")
+val corepackCommand = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+    "corepack.cmd"
+} else {
+    "corepack"
+}
+
+tasks.register<Exec>("exportValculatorData") {
+    group = "data"
+    description = "Exports a pinned Valculator TypeScript snapshot to the bundled JSON resource."
+
+    workingDir = projectDir
+    commandLine(
+        corepackCommand,
+        "yarn",
+        "dlx",
+        "tsx",
+        "tools/export-valculator-data.ts",
+        "--source",
+        valculatorSourceDirectory.get().absolutePath,
+        "--output",
+        generatedValheimData.asFile.absolutePath,
+    )
+
+    inputs.dir(valculatorSourceDirectory)
+    inputs.file(projectDir.resolve("tools/export-valculator-data.ts"))
+    // The snapshot is committed source data. Keep this task explicit so a
+    // standalone application checkout can build without a sibling Valculator clone.
+    outputs.upToDateWhen { false }
 }

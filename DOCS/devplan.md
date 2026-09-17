@@ -1,6 +1,6 @@
 # CatosResourceCalc - Development Plan
 
-> **Status:** Partially implemented. The Kotlin/Compose Desktop skeleton, mocha theme, bundled Minecraft font loading, and static utility window build and launch successfully on Windows. The Valculator exporter, validated dataset, calculator core, and functional UI interactions remain planned.
+> **Status:** Partially implemented. The Kotlin/Compose Desktop shell, mocha theme, bundled Minecraft font loading, and static utility window build and launch successfully on Windows. A deterministic Valculator exporter now produces a bundled schema-v1 dataset from the pinned upstream commit. The Kotlin calculator core and functional UI interactions remain planned.
 >
 > **Purpose:** Build a compact, friendly desktop utility that lets a player choose Valheim items and quantities, then immediately see the total materials required to craft them.
 >
@@ -383,14 +383,15 @@ Phase 0 findings as of 2026-09-17:
 
 ### Phase 2 - Build the Valculator data exporter
 
-- [ ] Add `tools/export-valculator-data.mjs` in the CatosResourceCalc project or an explicitly documented sibling tooling location.
-- [ ] Import `allItemsData` and `materialsData` from the pinned Valculator `packages/data` source using the upstream Node/Yarn toolchain.
-- [ ] Convert material-name references to stable material IDs while preserving display names and relevant upstream fields.
-- [ ] Emit schema-v1 JSON with repository URL, commit SHA, counts, and deterministic ordering.
-- [ ] Implement duplicate-ID, missing-reference, malformed-quantity, and unsupported-field validation.
+- [x] Add `tools/export-valculator-data.ts` and the on-demand `gradlew.bat exportValculatorData` task.
+- [x] Import `allItemsData` and `materialsData` from the pinned Valculator `packages/data` source using `corepack yarn dlx tsx`.
+- [x] Convert material-name references to stable material IDs while preserving display names, category fields, station data, level data, and output quantity.
+- [x] Emit schema-v1 JSON with repository URL, commit SHA, output-quantity rule, counts, and deterministic ordering.
+- [x] Validate duplicate IDs, duplicate material names, missing material references, empty names, absent material maps, and non-positive/non-integral quantities.
 - [ ] Add fixtures for punctuation, variants, levels, direct materials, nested materials, and batch-producing recipes.
-- [ ] Copy the validated output to `src/main/resources/data/valheim-data.json` through an explicit repeatable step.
-- [ ] **Verify:** Two exports from the same commit are byte-identical; invalid fixture data fails with actionable diagnostics; the generated snapshot is readable without image assets.
+- [x] Copy the validated output to `src/main/resources/data/valheim-data.json` through an explicit repeatable task.
+- [x] **Verify:** Two exports from commit `0820b7aea090a6d91c8c14868c3d0c70a095456d` are byte-identical (SHA-256 `48EF6CFA052168554E81B264B1748F9D31E2C09BAC4EC0206886FD8379BA0603`) and the bundled snapshot contains 1,124 items and 464 materials.
+- [ ] **Verify:** Invalid fixture data fails with actionable diagnostics once exporter fixtures are added.
 
 ### Phase 3 - Implement the pure Kotlin data and calculation core
 
