@@ -65,7 +65,7 @@ git tag -a v0.1.0 -m "CatosResourceCalc 0.1.0"
 git push origin v0.1.0
 ```
 
-The tag push is the publish action. You do not need to open the GitHub release form first.
+The tag push is the publish action. You do not need to open the GitHub release form first. Tags containing a hyphen, such as `v0.1.0-alpha.1`, are published as GitHub pre-releases automatically.
 
 ### 3. Watch the automated build
 
