@@ -4,6 +4,16 @@ This project is configured so you do not need to create releases manually on the
 
 Repository: https://github.com/ucwxcato/craftingcalculator-valheim
 
+## Current Alpha milestone
+
+The first Alpha source tag has already been pushed:
+
+```text
+v0.1.0-alpha.1
+```
+
+That tag points to the icon-enabled Alpha source. The GitHub Release and its MSI/JAR assets still need to be created manually while the account's GitHub Actions billing lock is active. Once the release is published, its assets can be downloaded from the repository's Releases page and used to test the updater flow.
+
 ## What gets published
 
 Every tagged release produces two downloadable files:
@@ -152,3 +162,14 @@ Fix the issue, push the fix to `main`, and create a new version tag.
 ## Important distinction
 
 Pushing to `main` updates the source repository but does **not** create a public release. Pushing a `vX.Y.Z` tag is what starts the release workflow and publishes the downloadable artifacts.
+
+## Planned in-app updater
+
+The first updater implementation should be an opt-in **Check for updates** action in the About dialog:
+
+1. Request the public GitHub Releases metadata over HTTPS.
+2. Compare the newest compatible release version with the app's current version.
+3. Show the version, release notes, and the matching MSI/JAR download link when an update is available.
+4. Let the user open the download page or download the selected asset.
+
+The app should remain fully usable offline when the check fails or is declined. Silent self-replacement is intentionally deferred: an MSI update can require Windows elevation, and a running JAR cannot safely overwrite itself. Before downloading updates directly, add HTTPS-only checks, repository/asset-name validation, and published SHA-256 checksums.

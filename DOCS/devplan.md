@@ -431,6 +431,7 @@ Phase 0 findings as of 2026-09-17:
 - [ ] Add optional display toggles for stations, intermediate components, and source version.
 - [x] Add a small About/source panel containing Valculator attribution and dataset commit.
 - [ ] Profile search and recalculation with the complete dataset; avoid premature caching that makes state stale.
+- [ ] Add an opt-in GitHub Releases update check in the About dialog; show the correct MSI/JAR asset and keep offline use unaffected.
 - [ ] **Verify:** Export files round-trip through parser tests, clipboard text matches visible totals, and the UI remains responsive with a full build plan.
 
 ### Phase 6 - Packaging and release readiness
