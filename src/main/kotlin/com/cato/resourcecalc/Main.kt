@@ -179,13 +179,15 @@ private fun PlanPanel(data: DataIndex, plan: List<PlanEntry>, calculation: Calcu
             Spacer(Modifier.height(22.dp)); Text("Your build plan is empty", style = MaterialTheme.typography.titleMedium); Spacer(Modifier.height(6.dp)); Text("Choose an item from search to begin.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
         } else {
             Spacer(Modifier.height(10.dp))
-            LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(7.dp)) { items(plan, key = { it.itemId }) { entry -> PlanRow(data.itemsById.getValue(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onRemove) } }
+            Text("SELECTED TARGETS", style = MaterialTheme.typography.labelMedium, color = MochaColors.TextSecondary)
+            Spacer(Modifier.height(5.dp))
+            LazyColumn(Modifier.weight(.42f), verticalArrangement = Arrangement.spacedBy(5.dp)) { items(plan, key = { it.itemId }) { entry -> PlanRow(data.itemsById.getValue(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onRemove) } }
         }
-        Spacer(Modifier.height(12.dp)); HorizontalDivider(color = MochaColors.Border); Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(10.dp)); HorizontalDivider(color = MochaColors.Border); Spacer(Modifier.height(10.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text("TOTAL MATERIALS", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f)); if (plan.isNotEmpty()) TextButton(onClick = onClear) { Text("CLEAR", color = MochaColors.TextSecondary) } }
         if (calculationError != null) Text(calculationError.message ?: "Calculation failed", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
         else if (calculation == null || calculation.totals.isEmpty()) Text("No base materials required.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
-        else Column(Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())) { calculation.totals.forEach { (id, quantity) -> Row(Modifier.fillMaxWidth().padding(vertical = 3.dp)) { Text(data.materialsById[id]?.name ?: id, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f)); Text(quantity.toString(), style = MaterialTheme.typography.titleMedium, color = MochaColors.AccentHover) } } }
+        else Column(Modifier.weight(if (plan.isEmpty()) 1f else .58f).verticalScroll(rememberScrollState())) { calculation.totals.forEach { (id, quantity) -> Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) { Text(data.materialsById[id]?.name ?: id, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f)); Text(quantity.toString(), style = MaterialTheme.typography.titleMedium, color = MochaColors.AccentHover) } } }
         Spacer(Modifier.height(10.dp)); Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) { Text(copyFeedback ?: "Totals update as you edit quantities.", style = MaterialTheme.typography.bodySmall, color = if (copyFeedback != null) MochaColors.Success else MochaColors.TextSecondary, modifier = Modifier.weight(1f)); Button(onClick = onCopy, enabled = calculation != null && calculation.totals.isNotEmpty(), colors = ButtonDefaults.buttonColors(containerColor = MochaColors.Accent, contentColor = MochaColors.Background, disabledContainerColor = MochaColors.SurfaceHighest, disabledContentColor = MochaColors.TextSecondary)) { Text("COPY LIST") } }
     }
 }
@@ -194,16 +196,20 @@ private fun PlanPanel(data: DataIndex, plan: List<PlanEntry>, calculation: Calcu
 private fun PlanRow(item: ItemRecord, entry: PlanEntry, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onRemove: (String) -> Unit) {
     var draft by remember(entry.itemId) { mutableStateOf(entry.quantity.toString()) }
     var invalid by remember(entry.itemId) { mutableStateOf(false) }
-    LaunchedEffect(entry.quantity) { if (!invalid) draft = entry.quantity.toString() }
+    LaunchedEffect(entry.quantity) { draft = entry.quantity.toString(); invalid = false }
     Card(colors = CardDefaults.cardColors(containerColor = MochaColors.SurfaceElevated), border = BorderStroke(1.dp, MochaColors.Border), shape = RoundedCornerShape(10.dp)) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 7.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) { Column(Modifier.weight(1f)) { Text(item.name, style = MaterialTheme.typography.titleMedium); Text(item.type ?: "Crafting item", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary) }; TextButton(onClick = { onRemove(item.id) }) { Text("REMOVE", color = MochaColors.Error) } }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                Button(onClick = { onDecrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding) { Text("−") }
-                OutlinedTextField(value = draft, onValueChange = { value -> draft = value; val parsed = value.toLongOrNull(); invalid = parsed == null || parsed <= 0; if (!invalid) onSetQuantity(item.id, parsed!!) }, modifier = Modifier.width(90.dp), singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = fieldColors())
-                Button(onClick = { onIncrease(item.id); draft = entry.quantity.safelyAdd(1).toString() }, contentPadding = ButtonDefaults.ContentPadding) { Text("+") }
-                if (invalid) Text("Positive whole number", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
+        Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(Modifier.weight(1f)) {
+                    Text(item.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    if (item.level != null) Text("Level ${item.level}", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                }
+                Button(onClick = { onDecrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("-") }
+                OutlinedTextField(value = draft, onValueChange = { value -> draft = value; val parsed = value.toLongOrNull(); invalid = parsed == null || parsed <= 0; if (!invalid) onSetQuantity(item.id, parsed!!) }, modifier = Modifier.width(72.dp), singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = fieldColors())
+                Button(onClick = { onIncrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("+") }
+                TextButton(onClick = { onRemove(item.id) }, contentPadding = ButtonDefaults.ContentPadding) { Text("REMOVE", color = MochaColors.Error) }
             }
+            if (invalid) Text("Enter a positive whole number", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
         }
     }
 }
