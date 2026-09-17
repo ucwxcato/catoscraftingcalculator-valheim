@@ -1,6 +1,6 @@
 # CatosResourceCalc - Development Plan
 
-> **Status:** Partially implemented. The Kotlin/Compose Desktop shell, mocha theme, bundled Minecraft font loading, and static utility window build and launch successfully on Windows. A deterministic Valculator exporter now produces a bundled schema-v1 dataset from the pinned upstream commit. The Kotlin calculator core and functional UI interactions remain planned.
+> **Status:** Partially implemented. The Kotlin/Compose Desktop shell, mocha theme, bundled Minecraft font loading, static utility window, deterministic Valculator exporter, bundled schema-v1 dataset, and pure Kotlin calculation core now build and test successfully on Windows. Functional UI interactions remain planned.
 >
 > **Purpose:** Build a compact, friendly desktop utility that lets a player choose Valheim items and quantities, then immediately see the total materials required to craft them.
 >
@@ -395,14 +395,14 @@ Phase 0 findings as of 2026-09-17:
 
 ### Phase 3 - Implement the pure Kotlin data and calculation core
 
-- [ ] Implement serializable Kotlin models for the locked JSON schema.
-- [ ] Implement `DataLoader` for the bundled resource and clear schema/version errors.
-- [ ] Implement `DataValidator` for runtime defense-in-depth checks.
-- [ ] Implement ID-based item/material indexes and normalized search fields.
-- [ ] Implement recursive material expansion with batch rounding, `Long` checked arithmetic, cycle detection, depth bounds, and deterministic aggregation.
-- [ ] Implement breakdown nodes and warnings so the UI can explain how totals were produced.
-- [ ] Add unit tests for direct, nested, multiple-target, variant/level, batch, unknown-reference, cycle, overflow, and zero-quantity cases.
-- [ ] **Verify:** Core tests pass without any UI toolkit, filesystem writes, network access, or Valheim installation.
+- [x] Implement serializable Kotlin models for the locked JSON schema.
+- [x] Implement `DataLoader` for the bundled resource and clear schema/version errors.
+- [x] Implement `DataValidator` for runtime defense-in-depth checks.
+- [x] Implement ID-based item/material indexes and normalized search fields.
+- [x] Implement recursive material expansion with batch rounding, `Long` checked arithmetic, cycle detection, depth bounds, and deterministic aggregation.
+- [x] Implement breakdown nodes and warnings so the UI can explain how totals were produced.
+- [x] Add unit tests for direct, nested, multiple-target, variant/level, batch, unknown-reference, cycle, overflow, and zero-quantity cases.
+- [x] **Verify:** Core tests pass without any UI toolkit, filesystem writes, network access, or Valheim installation (`gradlew.bat test`, 5 tests).
 
 ### Phase 4 - Implement the compact utility UI
 
