@@ -41,5 +41,33 @@ class DataIndex internal constructor(val snapshot: ValheimDataSnapshot) {
             .take(limit)
             .toList()
     }
-}
 
+    /** Returns one searchable entry per display name, retaining level variants for the plan selector. */
+    fun searchDistinct(query: String, limit: Int = 100): List<ItemRecord> {
+        require(limit > 0) { "limit must be positive" }
+        val normalizedQuery = DataValidator.normalize(query)
+        return itemsById.values
+            .asSequence()
+            .filter { normalizedQuery.isEmpty() || DataValidator.normalize(it.name).contains(normalizedQuery) }
+            .groupBy { DataValidator.normalize(it.name) }
+            .values
+            .asSequence()
+            .sortedBy { group -> group.minOf { DataValidator.normalize(it.name) } }
+            .flatMap { group ->
+                if (group.size > 1 && group.any { it.level != null }) {
+                    sequenceOf(group.sortedWith(compareBy<ItemRecord> { it.level ?: Int.MAX_VALUE }.thenBy { it.id }).first())
+                } else {
+                    group.asSequence().sortedBy { it.id }
+                }
+            }
+            .take(limit)
+            .toList()
+    }
+
+    fun variantsFor(itemId: String): List<ItemRecord> {
+        val item = itemsById[itemId] ?: return emptyList()
+        return itemsById.values
+            .filter { DataValidator.normalize(it.name) == DataValidator.normalize(item.name) && it.level != null }
+            .sortedWith(compareBy<ItemRecord> { it.level }.thenBy { it.id })
+    }
+}

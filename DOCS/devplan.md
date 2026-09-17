@@ -411,6 +411,7 @@ Phase 0 findings as of 2026-09-17:
 
 - [x] Create a single-window app shell with a compact default size and sensible minimum size.
 - [x] Add the search field, normalized filtering, result list, and no-match state.
+- [x] Collapse same-name level variants into one search result and expose level selection in the build-plan row.
 - [x] Add the selected-target/build-plan list with add, remove, plus, minus, direct quantity entry, and duplicate-target behavior.
 - [x] Add the totals panel with sorted material totals and a UI-ready breakdown API.
 - [x] Add explicit startup, invalid-data, validation, and calculation-error states.

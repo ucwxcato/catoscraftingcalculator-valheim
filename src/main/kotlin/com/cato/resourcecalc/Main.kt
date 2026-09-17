@@ -24,6 +24,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -86,7 +88,7 @@ private fun ResourceCalcApp() {
     var plan by remember { mutableStateOf(emptyList<PlanEntry>()) }
     var showClear by remember { mutableStateOf(false) }
     var copyFeedback by remember { mutableStateOf<String?>(null) }
-    val results = remember(query, data) { data.search(query, 80) }
+    val results = remember(query, data) { data.searchDistinct(query, 80) }
     val calculation = remember(plan, calculator) { runCatching { calculator.calculate(plan.map { TargetQuantity(it.itemId, it.quantity) }) } }
 
     Surface(Modifier.fillMaxSize(), color = MochaColors.Background) {
@@ -94,13 +96,19 @@ private fun ResourceCalcApp() {
             Header(query) { query = it }
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                SearchPanel(query, results, plan.mapTo(mutableSetOf()) { it.itemId }, { item -> plan = plan.addOrIncrement(item.id); copyFeedback = null }, Modifier.weight(.92f).fillMaxHeight())
+                SearchPanel(query, results, plan.flatMap { data.variantsFor(it.itemId) + data.itemsById.getValue(it.itemId) }.mapTo(mutableSetOf()) { it.id }, { item ->
+                    val variants = data.variantsFor(item.id).map { it.id }.toSet() + item.id
+                    val selected = plan.firstOrNull { it.itemId in variants }
+                    plan = if (selected == null) plan.addOrIncrement(item.id) else plan.changeQuantity(selected.itemId, 1)
+                    copyFeedback = null
+                }, Modifier.weight(.92f).fillMaxHeight())
                 BuildPlanPanel(
                     data = data,
                     plan = plan,
                     onIncrease = { plan = plan.changeQuantity(it, 1) },
                     onDecrease = { plan = plan.changeQuantity(it, -1) },
                     onSetQuantity = { id, quantity -> plan = plan.setQuantity(id, quantity) },
+                    onSelectVariant = { oldId, newId -> plan = plan.map { if (it.itemId == oldId) it.copy(itemId = newId) else it } },
                     onRemove = { id -> plan = plan.filterNot { it.itemId == id } },
                     onClear = { showClear = true },
                     Modifier.weight(.92f).fillMaxHeight(),
@@ -181,7 +189,7 @@ private fun SearchPanel(query: String, results: List<ItemRecord>, selectedIds: S
 }
 
 @Composable
-private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onRemove: (String) -> Unit, onClear: () -> Unit, modifier: Modifier) {
+private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit, onRemove: (String) -> Unit, onClear: () -> Unit, modifier: Modifier) {
     MochaPanel("BUILD PLAN", "${plan.size} selected target${if (plan.size == 1) "" else "s"}", modifier) {
         if (plan.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -197,7 +205,7 @@ private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (
             Spacer(Modifier.height(5.dp))
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 items(plan, key = { it.itemId }) { entry ->
-                    PlanRow(data.itemsById.getValue(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onRemove)
+                    PlanRow(data.itemsById.getValue(entry.itemId), data.variantsFor(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onSelectVariant, onRemove)
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -233,16 +241,29 @@ private fun TotalsPanel(data: DataIndex, plan: List<PlanEntry>, calculation: Cal
 }
 
 @Composable
-private fun PlanRow(item: ItemRecord, entry: PlanEntry, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onRemove: (String) -> Unit) {
+private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEntry, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit, onRemove: (String) -> Unit) {
     var draft by remember(entry.itemId) { mutableStateOf(entry.quantity.toString()) }
     var invalid by remember(entry.itemId) { mutableStateOf(false) }
+    var levelMenuExpanded by remember(entry.itemId) { mutableStateOf(false) }
     LaunchedEffect(entry.quantity) { draft = entry.quantity.toString(); invalid = false }
     Card(colors = CardDefaults.cardColors(containerColor = MochaColors.SurfaceElevated), border = BorderStroke(1.dp, MochaColors.Border), shape = RoundedCornerShape(10.dp)) {
         Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Column(Modifier.weight(1f)) {
                     Text(item.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
-                    if (item.level != null) Text("Level ${item.level}", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                    if (variants.isNotEmpty()) {
+                        Box {
+                            TextButton(onClick = { levelMenuExpanded = true }, contentPadding = ButtonDefaults.ContentPadding) { Text("Level ${item.level ?: 1} ▾", color = MochaColors.AccentHover) }
+                            DropdownMenu(expanded = levelMenuExpanded, onDismissRequest = { levelMenuExpanded = false }) {
+                                variants.forEach { variant ->
+                                    DropdownMenuItem(
+                                        text = { Text("Level ${variant.level}") },
+                                        onClick = { onSelectVariant(item.id, variant.id); levelMenuExpanded = false },
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 Button(onClick = { onDecrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("-") }
                 OutlinedTextField(value = draft, onValueChange = { value -> draft = value; val parsed = value.toLongOrNull(); invalid = parsed == null || parsed <= 0; if (!invalid) onSetQuantity(item.id, parsed!!) }, modifier = Modifier.width(72.dp), singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = fieldColors())

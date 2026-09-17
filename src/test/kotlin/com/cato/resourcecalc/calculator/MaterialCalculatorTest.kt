@@ -63,6 +63,8 @@ class MaterialCalculatorTest {
             ),
         )
         assertEquals(listOf("club1", "club2"), data.search(" CLUB ").map { it.id })
+        assertEquals(listOf("club1"), data.searchDistinct("club").map { it.id })
+        assertEquals(listOf("club1", "club2"), data.variantsFor("club1").map { it.id })
         assertEquals(8L, MaterialCalculator(data).calculate(listOf(TargetQuantity("club2", 1))).totalFor("m-wood"))
     }
 
