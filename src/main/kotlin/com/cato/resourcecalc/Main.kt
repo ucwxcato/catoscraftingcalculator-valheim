@@ -71,7 +71,7 @@ import java.net.URI
 import javax.imageio.ImageIO
 
 private const val APP_TITLE = "CatosResourceCalc"
-private const val APP_VERSION = "0.1.0-alpha.1"
+private const val APP_VERSION = "0.1.0-alpha.2"
 
 private sealed interface UpdateState {
     data object Idle : UpdateState
