@@ -379,7 +379,7 @@ Phase 0 findings as of 2026-09-17:
 - [x] Add the initial package structure, mocha theme, bundled Minecraft font loading, and a launchable static `Main.kt` utility-window shell.
 - [x] Add a test task and deterministic `gradlew.bat build` command; the initial project build succeeds.
 - [x] Add `.gitignore` entries for Gradle/build output, local tooling scratch files, IDE state, local settings/secrets, logs, and OS clutter while keeping the wrapper and bundled assets versioned.
-- [ ] Add `src/main/resources/LICENSE.valculator.txt` and source-attribution documentation.
+- [x] Add `src/main/resources/LICENSE.valculator.txt` and source-attribution documentation linking the upstream Valculator repository.
 - [x] Keep the copied `src/main/resources/fonts/Minecraft.otf` in the standalone repository.
 - [ ] Record the font's provenance and redistribution-license status before a distributable release is produced.
 - [x] **Verify:** The static application builds and launches on the target Windows development machine with `gradlew.bat build` and `gradlew.bat run`.
