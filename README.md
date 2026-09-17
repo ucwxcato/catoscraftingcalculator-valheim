@@ -38,6 +38,19 @@ To run the verification suite and build the project:
 
 The application does not need Node, Yarn, Git, or the Valculator checkout after the generated data snapshot has been bundled.
 
+## Release artifacts
+
+Tagged releases publish two Windows downloads automatically through GitHub Actions:
+
+- **MSI installer**: the recommended option for most players. It installs a native Windows application and bundles its Java runtime, so Java does not need to be installed separately.
+- **Runnable JAR**: a portable Java executable containing the app, data snapshot, and font. It requires Java 25 and can be launched with:
+
+```powershell
+java -jar CatosResourceCalc-windows-x64-0.1.0.jar
+```
+
+To create a release, push a version tag such as `v0.1.0`. The workflow runs the tests, builds both artifacts, and attaches them to the GitHub Release automatically.
+
 ## Data source
 
 CatosResourceCalc is a separate application. It does not reuse Valculator's website, React UI, routing, or hosting code. The crafting data is imported from Valculator's TypeScript data package, converted into a deterministic schema-v1 JSON snapshot, and bundled into this repository at:

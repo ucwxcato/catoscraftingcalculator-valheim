@@ -1,5 +1,6 @@
 import org.gradle.jvm.tasks.Jar
 import org.gradle.api.tasks.Exec
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm") version "2.4.20"
@@ -31,6 +32,21 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "com.cato.resourcecalc.MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+            packageName = "CatosResourceCalc"
+            packageVersion = "0.1.0"
+            description = "A compact offline Valheim crafting-material calculator."
+            vendor = "catosaurluna"
+            copyright = "Copyright © 2026 catosaurluna"
+
+            windows {
+                menuGroup = "CatosResourceCalc"
+                shortcut = true
+                dirChooser = true
+            }
+        }
     }
 }
 
