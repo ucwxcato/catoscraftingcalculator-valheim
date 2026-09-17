@@ -4,6 +4,33 @@ A compact, offline Valheim crafting-material calculator for Windows. Search for 
 
 ![CatosResourceCalc screenshot](DOCS/screenshots/resourcecalc.png)
 
+## Download and install
+
+You do not need to clone this repository to use the app. Open the [GitHub Releases page](https://github.com/ucwxcato/craftingcalculator-valheim/releases) and choose the newest release.
+
+### Recommended: Windows installer
+
+1. Download the file ending in `.msi`.
+2. Open it and follow the Windows installation prompts.
+3. Launch **CatosResourceCalc** from the Start menu or desktop shortcut.
+
+The installer includes its own Java runtime. You do not need to install Java, Git, Node, Yarn, or the Valculator repository. If Windows shows a SmartScreen prompt, select **More info**, verify that the app is CatosResourceCalc, and choose **Run anyway** if you trust the download source.
+
+### Portable option: runnable JAR
+
+The file ending in `.jar` is a portable Java version. Use this if Java 25 is already installed or if you prefer not to install the app.
+
+1. Install Java 25 if needed, for example from [Eclipse Adoptium](https://adoptium.net/temurin/releases/).
+2. Download the `CatosResourceCalc-windows-x64-*.jar` file from the release.
+3. Open PowerShell in the folder where you downloaded it.
+4. Run:
+
+   ```powershell
+   java -jar .\CatosResourceCalc-windows-x64-0.1.0.jar
+   ```
+
+Do not download **Source code (zip)** or **Source code (tar.gz)** unless you want the project files for development. Those archives are not the ready-to-run application.
+
 ## Features
 
 - Warm mocha desktop UI with the bundled Minecraft font
