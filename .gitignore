@@ -1,0 +1,53 @@
+# Gradle and Kotlin build state
+.gradle/
+**/build/
+out/
+.kotlin/
+kotlin-js-store/
+
+# JVM crash and heap-dump diagnostics
+hs_err_pid*.log
+replay_pid*.log
+*.hprof
+
+# IDE and editor state
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.fleet/
+
+# Local machine configuration and secrets
+local.properties
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.pem
+
+# Local exporter/tooling dependencies and scratch output
+node_modules/
+tools/.cache/
+tools/output/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Keep these release/source assets versioned:
+# - gradlew, gradlew.bat, and gradle/wrapper/**
+# - src/main/resources/data/**
+# - src/main/resources/fonts/Minecraft.otf
