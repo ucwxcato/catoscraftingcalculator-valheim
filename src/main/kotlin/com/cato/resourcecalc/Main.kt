@@ -252,7 +252,7 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
                     Text(item.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
                     if (variants.isNotEmpty()) {
                         Box {
-                            TextButton(onClick = { levelMenuExpanded = true }, contentPadding = ButtonDefaults.ContentPadding) { Text("Level ${item.level ?: 1} ▾", color = MochaColors.AccentHover) }
+                            TextButton(onClick = { levelMenuExpanded = true }, contentPadding = ButtonDefaults.ContentPadding) { Text("Level ${item.level ?: 1} [v]", color = MochaColors.AccentHover) }
                             DropdownMenu(expanded = levelMenuExpanded, onDismissRequest = { levelMenuExpanded = false }) {
                                 variants.forEach { variant ->
                                     DropdownMenuItem(
@@ -262,6 +262,9 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
                                 }
                             }
                         }
+                    }
+                    stationSummary(item)?.let { station ->
+                        Text(station, style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary, maxLines = 1)
                     }
                 }
                 Button(onClick = { onDecrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("-") }
@@ -289,10 +292,23 @@ private fun formatTotals(data: DataIndex, plan: List<PlanEntry>, result: Calcula
     plan.forEach { target ->
         appendLine("- ${data.itemsById[target.itemId]?.name ?: target.itemId} x${target.quantity}")
     }
+    val stations = plan.mapNotNull { target ->
+        data.itemsById[target.itemId]?.let { item -> stationSummary(item)?.let { "${item.name}: $it" } }
+    }
+    if (stations.isNotEmpty()) {
+        appendLine()
+        appendLine("Crafting Stations:")
+        stations.forEach { appendLine("- $it") }
+    }
     appendLine()
     appendLine("Materials:")
     result.totals.forEach { (id, quantity) ->
         appendLine("- $quantity x ${data.materialsById[id]?.name ?: id}")
     }
 }
+
+private fun stationSummary(item: ItemRecord): String? = item.station.entries
+    .sortedBy { it.key.lowercase() }
+    .joinToString(" · ") { (station, level) -> "$station Level $level" }
+    .takeIf { it.isNotBlank() }
 private fun copyToClipboard(text: String) { runCatching { Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null) } }

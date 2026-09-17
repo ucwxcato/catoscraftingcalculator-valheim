@@ -105,7 +105,7 @@ The implemented MVP uses a wider three-column variant of this layout: item searc
 
 - Empty search shows a useful starter list or a short instruction, not a blank unexplained panel.
 - No-match search shows `No items found` and preserves the current plan.
-- Escape clears search/focuses the plan; Enter adds the highlighted result; arrow keys move through results.
+- Keyboard navigation is intentionally out of MVP scope; mouse and standard text-field input remain the primary interaction model.
 - Quantity input rejects zero, negatives, decimals, non-numeric text, and overflow with an inline message while retaining the last valid value.
 - Removing an item updates totals immediately and cannot alter another target.
 - Decreasing a target from quantity one removes it from the build plan, matching the compact stepper behavior.
@@ -420,15 +420,15 @@ Phase 0 findings as of 2026-09-17:
 - [x] Register `Minecraft.otf` as the primary UI font.
 - [x] Style empty, warning, success, and error states using the same palette without relying on color alone to communicate meaning.
 - [x] Keep calculation and data state outside composables; composables dispatch user actions and render state.
-- [ ] Add full keyboard focus order, accessible labels/tooltips, readable contrast, and system-theme support.
+- [ ] Add accessible labels/tooltips, readable contrast, and system-theme support. Keyboard navigation is intentionally out of MVP scope.
 - [ ] **Verify:** Complete a manual happy-path run and finish contrast, focus, font rendering, and fallback checks for the mocha theme.
 
 ### Phase 5 - Utility polish and optional exports
 
 - [ ] Add JSON and CSV export of the current calculation only, with safe escaping and a user-selected destination.
 - [ ] Add a compact-mode preference only if the default layout cannot remain clear at the target size.
+- [x] Add a crafting-station section to the visible and copied result, showing each required bench/workstation and its required upgrade level (for example, Workbench Level 3).
 - [ ] Add optional display toggles for stations, intermediate components, and source version.
-- [ ] Add an optional “crafting station” section to the visible and copied result, showing each required bench/workstation and its required upgrade level (for example, Workbench Level 3).
 - [ ] Add a small About/source panel containing Valculator attribution and dataset commit.
 - [ ] Profile search and recalculation with the complete dataset; avoid premature caching that makes state stale.
 - [ ] **Verify:** Export files round-trip through parser tests, clipboard text matches visible totals, and the UI remains responsive with a full build plan.
