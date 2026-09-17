@@ -109,7 +109,6 @@ private fun ResourceCalcApp() {
                     onDecrease = { plan = plan.changeQuantity(it, -1) },
                     onSetQuantity = { id, quantity -> plan = plan.setQuantity(id, quantity) },
                     onSelectVariant = { oldId, newId -> plan = plan.map { if (it.itemId == oldId) it.copy(itemId = newId) else it } },
-                    onRemove = { id -> plan = plan.filterNot { it.itemId == id } },
                     onClear = { showClear = true },
                     Modifier.weight(.92f).fillMaxHeight(),
                 )
@@ -189,7 +188,7 @@ private fun SearchPanel(query: String, results: List<ItemRecord>, selectedIds: S
 }
 
 @Composable
-private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit, onRemove: (String) -> Unit, onClear: () -> Unit, modifier: Modifier) {
+private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit, onClear: () -> Unit, modifier: Modifier) {
     MochaPanel("BUILD PLAN", "${plan.size} selected target${if (plan.size == 1) "" else "s"}", modifier) {
         if (plan.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -205,7 +204,7 @@ private fun BuildPlanPanel(data: DataIndex, plan: List<PlanEntry>, onIncrease: (
             Spacer(Modifier.height(5.dp))
             LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 items(plan, key = { it.itemId }) { entry ->
-                    PlanRow(data.itemsById.getValue(entry.itemId), data.variantsFor(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onSelectVariant, onRemove)
+                    PlanRow(data.itemsById.getValue(entry.itemId), data.variantsFor(entry.itemId), entry, onIncrease, onDecrease, onSetQuantity, onSelectVariant)
                 }
             }
             Spacer(Modifier.height(8.dp))
@@ -241,7 +240,7 @@ private fun TotalsPanel(data: DataIndex, plan: List<PlanEntry>, calculation: Cal
 }
 
 @Composable
-private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEntry, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit, onRemove: (String) -> Unit) {
+private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEntry, onIncrease: (String) -> Unit, onDecrease: (String) -> Unit, onSetQuantity: (String, Long) -> Unit, onSelectVariant: (String, String) -> Unit) {
     var draft by remember(entry.itemId) { mutableStateOf(entry.quantity.toString()) }
     var invalid by remember(entry.itemId) { mutableStateOf(false) }
     var levelMenuExpanded by remember(entry.itemId) { mutableStateOf(false) }
@@ -268,7 +267,6 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
                 Button(onClick = { onDecrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("-") }
                 OutlinedTextField(value = draft, onValueChange = { value -> draft = value; val parsed = value.toLongOrNull(); invalid = parsed == null || parsed <= 0; if (!invalid) onSetQuantity(item.id, parsed!!) }, modifier = Modifier.width(72.dp), singleLine = true, isError = invalid, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), colors = fieldColors())
                 Button(onClick = { onIncrease(item.id) }, contentPadding = ButtonDefaults.ContentPadding, modifier = Modifier.height(38.dp)) { Text("+") }
-                TextButton(onClick = { onRemove(item.id) }, contentPadding = ButtonDefaults.ContentPadding) { Text("REMOVE", color = MochaColors.Error) }
             }
             if (invalid) Text("Enter a positive whole number", style = MaterialTheme.typography.bodySmall, color = MochaColors.Error)
         }
