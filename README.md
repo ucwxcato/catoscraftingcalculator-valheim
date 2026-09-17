@@ -74,7 +74,7 @@ The calculation core has no Compose, filesystem, network, or Valheim-installatio
 
 The application is authored by **catosaurluna**. The material and recipe records are imported from the [Valculator repository](https://github.com/charlotte-hues/valculator); Valculator is the upstream data source, not this application. The exact imported commit is preserved in `src/main/resources/data/valheim-data.json`, and the upstream Apache 2.0 notice is bundled at `src/main/resources/LICENSE.valculator.txt`.
 
-The `Minecraft.otf` font is bundled as a standalone project asset and is publicly available for redistribution.
+The bundled `Minecraft.otf` is the [Minecraft Font by Idrees Hassan](https://github.com/IdreesInc/Minecraft-Font), licensed under the SIL Open Font License 1.1. Its copyright notice and license are included at `src/main/resources/LICENSE.minecraft-font.txt`.
 
 ## Development status
 

@@ -57,8 +57,10 @@ import com.cato.resourcecalc.ui.CatosResourceCalcTheme
 import com.cato.resourcecalc.ui.MochaColors
 import java.awt.Color as AwtColor
 import java.awt.Dimension
+import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
+import java.net.URI
 
 private const val APP_TITLE = "CatosResourceCalc"
 
@@ -87,13 +89,14 @@ private fun ResourceCalcApp() {
     var query by remember { mutableStateOf("") }
     var plan by remember { mutableStateOf(emptyList<PlanEntry>()) }
     var showClear by remember { mutableStateOf(false) }
+    var showAbout by remember { mutableStateOf(false) }
     var copyFeedback by remember { mutableStateOf<String?>(null) }
     val results = remember(query, data) { data.searchDistinct(query, 80) }
     val calculation = remember(plan, calculator) { runCatching { calculator.calculate(plan.map { TargetQuantity(it.itemId, it.quantity) }) } }
 
     Surface(Modifier.fillMaxSize(), color = MochaColors.Background) {
         Column(Modifier.fillMaxSize().padding(20.dp)) {
-            Header(query) { query = it }
+            Header(query, onAbout = { showAbout = true }) { query = it }
             Spacer(Modifier.height(16.dp))
             Row(Modifier.fillMaxWidth().weight(1f), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 SearchPanel(query, results, plan.flatMap { data.variantsFor(it.itemId) + data.itemsById.getValue(it.itemId) }.mapTo(mutableSetOf()) { it.id }, { item ->
@@ -134,6 +137,7 @@ private fun ResourceCalcApp() {
         confirmButton = { TextButton(onClick = { plan = emptyList(); copyFeedback = null; showClear = false }) { Text("CLEAR", color = MochaColors.AccentHover) } },
         dismissButton = { TextButton(onClick = { showClear = false }) { Text("CANCEL") } },
     )
+    if (showAbout) AboutDialog(data) { showAbout = false }
 }
 
 private fun List<PlanEntry>.addOrIncrement(id: String): List<PlanEntry> = if (any { it.itemId == id }) map { if (it.itemId == id) it.copy(quantity = it.quantity.safelyAdd(1)) else it } else this + PlanEntry(id, 1)
@@ -148,13 +152,14 @@ private fun List<PlanEntry>.setQuantity(id: String, quantity: Long): List<PlanEn
 private fun Long.safelyAdd(value: Long): Long = if (this == Long.MAX_VALUE) this else this + value
 
 @Composable
-private fun Header(query: String, onQueryChange: (String) -> Unit) {
+private fun Header(query: String, onAbout: () -> Unit, onQueryChange: (String) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         Column(Modifier.weight(1f)) {
             Text("CATOS RESOURCE CALC", style = MaterialTheme.typography.headlineSmall)
             Spacer(Modifier.height(3.dp))
             Text("A compact Valheim crafting planner", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
         }
+        TextButton(onClick = onAbout) { Text("ABOUT", color = MochaColors.AccentHover) }
         OutlinedTextField(value = query, onValueChange = onQueryChange, modifier = Modifier.width(320.dp), singleLine = true, label = { Text("Search items") }, placeholder = { Text("Try: iron, bread, torch...") }, colors = fieldColors())
     }
 }
@@ -277,6 +282,31 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
 }
 
 @Composable
+private fun AboutDialog(data: DataIndex, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MochaColors.SurfaceElevated,
+        title = { Text("ABOUT CATOS RESOURCE CALC") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("A compact, offline Valheim crafting-material calculator.", style = MaterialTheme.typography.bodyMedium)
+                Text("Author: catosaurluna", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+                HorizontalDivider(color = MochaColors.Border)
+                Text("Material data source", style = MaterialTheme.typography.titleMedium)
+                Text("Crafting and recipe data is imported from Valculator. This is a separate application; Valculator supplies data only.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+                Text("Source commit: ${data.snapshot.source.commit}", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                TextButton(onClick = { openUrl(data.snapshot.source.repository) }) { Text("OPEN VALCULATOR SOURCE", color = MochaColors.AccentHover) }
+                HorizontalDivider(color = MochaColors.Border)
+                Text("Font", style = MaterialTheme.typography.titleMedium)
+                Text("Minecraft Font by Idrees Hassan, licensed under SIL Open Font License 1.1.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+                TextButton(onClick = { openUrl("https://github.com/IdreesInc/Minecraft-Font") }) { Text("OPEN FONT SOURCE", color = MochaColors.AccentHover) }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text("CLOSE") } },
+    )
+}
+
+@Composable
 private fun ErrorPanel(message: String) { Surface(Modifier.fillMaxSize(), color = MochaColors.Background) { Column(Modifier.fillMaxSize().padding(32.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) { Text("DATA LOAD ERROR", style = MaterialTheme.typography.headlineSmall, color = MochaColors.Error); Spacer(Modifier.height(12.dp)); Text(message, style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextPrimary) } } }
 
 @Composable
@@ -312,3 +342,4 @@ private fun stationSummary(item: ItemRecord): String? = item.station.entries
     .joinToString(" · ") { (station, level) -> "$station Level $level" }
     .takeIf { it.isNotBlank() }
 private fun copyToClipboard(text: String) { runCatching { Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text), null) } }
+private fun openUrl(url: String) { runCatching { if (Desktop.isDesktopSupported()) Desktop.getDesktop().browse(URI(url)) } }

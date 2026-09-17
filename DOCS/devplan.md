@@ -381,7 +381,7 @@ Phase 0 findings as of 2026-09-17:
 - [x] Add `.gitignore` entries for Gradle/build output, local tooling scratch files, IDE state, local settings/secrets, logs, and OS clutter while keeping the wrapper and bundled assets versioned.
 - [x] Add `src/main/resources/LICENSE.valculator.txt` and source-attribution documentation linking the upstream Valculator repository.
 - [x] Keep the copied `src/main/resources/fonts/Minecraft.otf` in the standalone repository.
-- [ ] Record the font's provenance and redistribution-license status before a distributable release is produced.
+- [x] Record the font's provenance and redistribution-license status before a distributable release is produced (`IdreesInc/Minecraft-Font`, SIL Open Font License 1.1).
 - [x] **Verify:** The static application builds and launches on the target Windows development machine with `gradlew.bat build` and `gradlew.bat run`.
 
 ### Phase 2 - Build the Valculator data exporter
@@ -429,7 +429,7 @@ Phase 0 findings as of 2026-09-17:
 - [ ] Add a compact-mode preference only if the default layout cannot remain clear at the target size.
 - [x] Add a crafting-station section to the visible and copied result, showing each required bench/workstation and its required upgrade level (for example, Workbench Level 3).
 - [ ] Add optional display toggles for stations, intermediate components, and source version.
-- [ ] Add a small About/source panel containing Valculator attribution and dataset commit.
+- [x] Add a small About/source panel containing Valculator attribution and dataset commit.
 - [ ] Profile search and recalculation with the complete dataset; avoid premature caching that makes state stale.
 - [ ] **Verify:** Export files round-trip through parser tests, clipboard text matches visible totals, and the UI remains responsive with a full build plan.
 
