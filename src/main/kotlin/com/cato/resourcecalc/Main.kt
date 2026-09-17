@@ -111,7 +111,7 @@ private fun ResourceCalcApp() {
                 )
             }
             Spacer(Modifier.height(14.dp))
-            Text("Created by catosaurluna  ·  Valculator ${data.snapshot.source.commit.take(8)}", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
+            Text("Created by catosaurluna  ·  Crafting data imported from Valculator  ·  source ${data.snapshot.source.commit.take(8)}", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
         }
     }
     if (showClear) AlertDialog(
