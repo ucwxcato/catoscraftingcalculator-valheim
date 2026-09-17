@@ -45,6 +45,7 @@ compose.desktop {
                 menuGroup = "CatosResourceCalc"
                 shortcut = true
                 dirChooser = true
+                iconFile.set(project.file("src/main/resources/icons/CatosResourceCalc.ico"))
             }
         }
     }

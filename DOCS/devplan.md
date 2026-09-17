@@ -437,6 +437,7 @@ Phase 0 findings as of 2026-09-17:
 
 - [x] Choose the Windows distribution formats: a Compose MSI with bundled JVM and a runnable Compose uber-JAR for Java users.
 - [x] Build release artifacts that include the bundled JSON, font, and license attribution (`packageMsi`, `packageUberJarForCurrentOS`).
+- [x] Configure the branded CatosResourceCalc icon for the Compose window and Windows native packages.
 - [x] Add a tag-triggered GitHub Actions workflow that publishes both artifacts to the GitHub Releases page.
 - [ ] Test on a clean Windows environment without Node, Yarn, Git, or the Valculator checkout installed.
 - [ ] Document how to regenerate data from a new Valculator commit and how to review the generated diff.

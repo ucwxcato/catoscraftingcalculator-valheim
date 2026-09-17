@@ -61,6 +61,7 @@ import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 import java.net.URI
+import javax.imageio.ImageIO
 
 private const val APP_TITLE = "CatosResourceCalc"
 
@@ -69,7 +70,12 @@ fun main() = application {
         window.minimumSize = Dimension(1_080, 560)
         window.background = AwtColor(0x1E, 0x16, 0x14)
         CatosResourceCalcTheme {
-            LaunchedEffect(window) { WindowsTitleBar.apply(window) }
+            LaunchedEffect(window) {
+                WindowsTitleBar.apply(window)
+                window.iconImage = runCatching {
+                    ClassLoader.getSystemResourceAsStream("icons/CatosResourceCalc.png")?.use(ImageIO::read)
+                }.getOrNull()
+            }
             ResourceCalcApp()
         }
     }
