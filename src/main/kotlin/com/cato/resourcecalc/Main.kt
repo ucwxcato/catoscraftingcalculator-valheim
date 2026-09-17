@@ -38,6 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +56,12 @@ import com.cato.resourcecalc.data.ItemRecord
 import com.cato.resourcecalc.platform.WindowsTitleBar
 import com.cato.resourcecalc.ui.CatosResourceCalcTheme
 import com.cato.resourcecalc.ui.MochaColors
+import com.cato.resourcecalc.updates.AppVersion
+import com.cato.resourcecalc.updates.ReleaseChecker
+import com.cato.resourcecalc.updates.UpdateInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.Color as AwtColor
 import java.awt.Dimension
 import java.awt.Desktop
@@ -64,6 +71,15 @@ import java.net.URI
 import javax.imageio.ImageIO
 
 private const val APP_TITLE = "CatosResourceCalc"
+private const val APP_VERSION = "0.1.0-alpha.1"
+
+private sealed interface UpdateState {
+    data object Idle : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+    data class Available(val info: UpdateInfo) : UpdateState
+    data class Failed(val message: String) : UpdateState
+}
 
 fun main() = application {
     Window(onCloseRequest = ::exitApplication, state = rememberWindowState(width = 1_280.dp, height = 720.dp), title = APP_TITLE) {
@@ -97,6 +113,21 @@ private fun ResourceCalcApp() {
     var showClear by remember { mutableStateOf(false) }
     var showAbout by remember { mutableStateOf(false) }
     var copyFeedback by remember { mutableStateOf<String?>(null) }
+    var updateState by remember { mutableStateOf<UpdateState>(UpdateState.Idle) }
+    val updateScope = rememberCoroutineScope()
+    fun checkForUpdates(promptWhenAvailable: Boolean) {
+        val currentVersion = AppVersion.parse(APP_VERSION) ?: return
+        updateState = UpdateState.Checking
+        updateScope.launch {
+            val result = withContext(Dispatchers.IO) { runCatching { ReleaseChecker.check(currentVersion) } }
+            updateState = result.fold(
+                onSuccess = { info -> if (info == null) UpdateState.UpToDate else UpdateState.Available(info) },
+                onFailure = { error -> UpdateState.Failed(error.message ?: "Unable to reach GitHub Releases") },
+            )
+            if (promptWhenAvailable && result.getOrNull() != null) showAbout = true
+        }
+    }
+    LaunchedEffect(Unit) { checkForUpdates(promptWhenAvailable = true) }
     val results = remember(query, data) { data.searchDistinct(query, 80) }
     val calculation = remember(plan, calculator) { runCatching { calculator.calculate(plan.map { TargetQuantity(it.itemId, it.quantity) }) } }
 
@@ -143,7 +174,7 @@ private fun ResourceCalcApp() {
         confirmButton = { TextButton(onClick = { plan = emptyList(); copyFeedback = null; showClear = false }) { Text("CLEAR", color = MochaColors.AccentHover) } },
         dismissButton = { TextButton(onClick = { showClear = false }) { Text("CANCEL") } },
     )
-    if (showAbout) AboutDialog(data) { showAbout = false }
+    if (showAbout) AboutDialog(data, updateState, onCheckForUpdates = { checkForUpdates(promptWhenAvailable = false) }) { showAbout = false }
 }
 
 private fun List<PlanEntry>.addOrIncrement(id: String): List<PlanEntry> = if (any { it.itemId == id }) map { if (it.itemId == id) it.copy(quantity = it.quantity.safelyAdd(1)) else it } else this + PlanEntry(id, 1)
@@ -288,7 +319,7 @@ private fun PlanRow(item: ItemRecord, variants: List<ItemRecord>, entry: PlanEnt
 }
 
 @Composable
-private fun AboutDialog(data: DataIndex, onDismiss: () -> Unit) {
+private fun AboutDialog(data: DataIndex, updateState: UpdateState, onCheckForUpdates: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MochaColors.SurfaceElevated,
@@ -306,6 +337,20 @@ private fun AboutDialog(data: DataIndex, onDismiss: () -> Unit) {
                 Text("Font", style = MaterialTheme.typography.titleMedium)
                 Text("Minecraft Font by Idrees Hassan, licensed under SIL Open Font License 1.1.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.TextSecondary)
                 TextButton(onClick = { openUrl("https://github.com/IdreesInc/Minecraft-Font") }) { Text("OPEN FONT SOURCE", color = MochaColors.AccentHover) }
+                HorizontalDivider(color = MochaColors.Border)
+                Text("Updates", style = MaterialTheme.typography.titleMedium)
+                when (val state = updateState) {
+                    UpdateState.Idle -> Text("Updates have not been checked yet.", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                    UpdateState.Checking -> Text("Checking GitHub Releases...", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                    UpdateState.UpToDate -> Text("You are using the newest available release.", style = MaterialTheme.typography.bodySmall, color = MochaColors.Success)
+                    is UpdateState.Failed -> Text("Update check unavailable: ${state.message}", style = MaterialTheme.typography.bodySmall, color = MochaColors.Warning)
+                    is UpdateState.Available -> {
+                        Text("Version ${state.info.version} is available.", style = MaterialTheme.typography.bodyMedium, color = MochaColors.Success)
+                        if (state.info.assets.isNotEmpty()) Text("Release assets: ${state.info.assets.joinToString { it.name }}", style = MaterialTheme.typography.bodySmall, color = MochaColors.TextSecondary)
+                        TextButton(onClick = { openUrl(state.info.releaseUrl) }) { Text("OPEN UPDATE RELEASE", color = MochaColors.AccentHover) }
+                    }
+                }
+                TextButton(onClick = onCheckForUpdates) { Text("CHECK FOR UPDATES", color = MochaColors.AccentHover) }
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text("CLOSE") } },

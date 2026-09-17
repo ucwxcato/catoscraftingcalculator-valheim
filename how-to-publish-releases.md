@@ -163,13 +163,13 @@ Fix the issue, push the fix to `main`, and create a new version tag.
 
 Pushing to `main` updates the source repository but does **not** create a public release. Pushing a `vX.Y.Z` tag is what starts the release workflow and publishes the downloadable artifacts.
 
-## Planned in-app updater
+## In-app updater
 
-The first updater implementation should be an opt-in **Check for updates** action in the About dialog:
+The app now performs a non-blocking update check on launch and provides a manual **Check for updates** action in the About dialog:
 
 1. Request the public GitHub Releases metadata over HTTPS.
 2. Compare the newest compatible release version with the app's current version.
 3. Show the version, release notes, and the matching MSI/JAR download link when an update is available.
-4. Let the user open the download page or download the selected asset.
+4. Let the user open the release page and download the selected asset.
 
-The app should remain fully usable offline when the check fails or is declined. Silent self-replacement is intentionally deferred: an MSI update can require Windows elevation, and a running JAR cannot safely overwrite itself. Before downloading updates directly, add HTTPS-only checks, repository/asset-name validation, and published SHA-256 checksums.
+The app remains fully usable offline when the check fails or is declined. Silent self-replacement is intentionally deferred: an MSI update can require Windows elevation, and a running JAR cannot safely overwrite itself. Before downloading updates directly, add HTTPS-only checks, repository/asset-name validation, and published SHA-256 checksums.
