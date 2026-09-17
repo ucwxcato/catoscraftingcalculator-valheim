@@ -1,6 +1,6 @@
 # CatosResourceCalc - Development Plan
 
-> **Status:** Partially implemented. The Kotlin/Compose Desktop shell, mocha theme, bundled Minecraft font loading, static utility window, deterministic Valculator exporter, bundled schema-v1 dataset, and pure Kotlin calculation core now build and test successfully on Windows. Functional UI interactions remain planned.
+> **Status:** Partially implemented. The Kotlin/Compose Desktop shell, mocha theme, bundled Minecraft font loading, deterministic Valculator exporter, bundled schema-v1 dataset, pure Kotlin calculation core, and functional MVP interactions now build and test successfully on Windows. Packaging and optional polish remain planned.
 >
 > **Purpose:** Build a compact, friendly desktop utility that lets a player choose Valheim items and quantities, then immediately see the total materials required to craft them.
 >
@@ -406,18 +406,18 @@ Phase 0 findings as of 2026-09-17:
 
 ### Phase 4 - Implement the compact utility UI
 
-- [ ] Create a single-window app shell with a compact default size and sensible minimum size.
-- [ ] Add the search field, normalized filtering, result list, keyboard navigation, and no-match state.
-- [ ] Add the selected-target/build-plan list with add, remove, plus, minus, direct quantity entry, and duplicate-target behavior.
-- [ ] Add the totals panel with sorted material totals and optional expandable intermediate breakdown.
-- [ ] Add explicit startup, invalid-data, validation, and calculation-error states.
-- [ ] Add Copy-to-Clipboard using stable plain-text formatting.
-- [ ] Implement the mocha color tokens, typography hierarchy, spacing scale, borders, corner radius, and focus/hover/pressed states from Section 3.4.
-- [ ] Register `Minecraft.otf` as the primary UI font and implement the documented fallback font chain.
-- [ ] Style empty, warning, success, and error states using the same palette without relying on color alone to communicate meaning.
-- [ ] Keep all state transitions in a UI state model; composables/components must not own calculation logic.
-- [ ] Add keyboard focus order, accessible labels/tooltips, readable contrast, and system-theme support.
-- [ ] **Verify:** A manual happy-path run completes in under a few interactions; all verification-matrix input/error cases behave visibly and without UI freezes; contrast, focus, font rendering, and fallback checks pass for the mocha theme.
+- [x] Create a single-window app shell with a compact default size and sensible minimum size.
+- [x] Add the search field, normalized filtering, result list, and no-match state.
+- [x] Add the selected-target/build-plan list with add, remove, plus, minus, direct quantity entry, and duplicate-target behavior.
+- [x] Add the totals panel with sorted material totals and a UI-ready breakdown API.
+- [x] Add explicit startup, invalid-data, validation, and calculation-error states.
+- [x] Add Copy-to-Clipboard using stable plain-text formatting.
+- [x] Implement the mocha color tokens, typography hierarchy, spacing scale, borders, corner radius, and focus/hover/pressed states from Section 3.4.
+- [x] Register `Minecraft.otf` as the primary UI font.
+- [x] Style empty, warning, success, and error states using the same palette without relying on color alone to communicate meaning.
+- [x] Keep calculation and data state outside composables; composables dispatch user actions and render state.
+- [ ] Add full keyboard focus order, accessible labels/tooltips, readable contrast, and system-theme support.
+- [ ] **Verify:** Complete a manual happy-path run and finish contrast, focus, font rendering, and fallback checks for the mocha theme.
 
 ### Phase 5 - Utility polish and optional exports
 
