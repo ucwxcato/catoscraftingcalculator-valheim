@@ -34,6 +34,9 @@ compose.desktop {
         mainClass = "com.cato.resourcecalc.MainKt"
 
         nativeDistributions {
+            // The updater uses java.net.http.HttpClient; Compose's minimized
+            // runtime does not infer this module reliably from the app graph.
+            modules("java.net.http")
             targetFormats(TargetFormat.Msi, TargetFormat.Exe)
             packageName = "CatosResourceCalc"
             packageVersion = "0.1.0"

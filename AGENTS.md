@@ -8,6 +8,7 @@
 - Update checks are non-blocking and failures are safe for offline use; the app never replaces files silently.
 - `Main.kt` contains the embedded `APP_VERSION`. Bump it for every published prerelease/release so it matches the tag (for example, `0.1.0-alpha.2` with `v0.1.0-alpha.2`).
 - Update comparison uses semantic versions and ignores draft GitHub releases.
+- The native distribution explicitly includes the `java.net.http` module; keep this when changing packaging or the updater will fail at startup.
 
 ## Release verification
 
