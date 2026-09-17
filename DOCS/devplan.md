@@ -1,12 +1,12 @@
 # CatosResourceCalc - Development Plan
 
-> **Status:** Authored plan. `CatosResourceCalc` is currently an empty project directory; no Kotlin project, UI, exporter, or runtime behavior is verified yet.
+> **Status:** Partially implemented. The Kotlin/Compose Desktop skeleton, mocha theme, bundled Minecraft font loading, and static utility window build and launch successfully on Windows. The Valculator exporter, validated dataset, calculator core, and functional UI interactions remain planned.
 >
 > **Purpose:** Build a compact, friendly desktop utility that lets a player choose Valheim items and quantities, then immediately see the total materials required to craft them.
 >
 > **Authority:** This document owns the standalone CatosResourceCalc application, its data-import boundary, calculation rules, UI behavior, tests, and packaging. The Valculator repository remains an upstream data source and is not modified by this project.
 >
-> **Target:** Proposed Kotlin/JVM desktop application for Windows first. The UI toolkit and exact JDK/Kotlin versions are a Phase 0 compatibility decision.
+> **Target:** Kotlin/JVM desktop application for Windows first, using Compose for Desktop. Exact JDK, Kotlin, Compose, and Gradle versions remain a Phase 0 compatibility decision.
 
 ## 0. Outcome
 
@@ -34,7 +34,7 @@ The calculator must work offline after the generated Valculator data has been bu
 - **Mocha visual direction:** Use a warm, low-saturation mocha palette with soft cream text, restrained terracotta accents, and no pure black or pure white. The interface should feel calm during long planning sessions while keeping controls and results visually distinct.
 - **Minecraft font asset:** Use `Minecraft.otf` as the primary branded UI font, bundled at `src/main/resources/fonts/Minecraft.otf`. Keep a readable fallback font for unsupported glyphs, dense helper text, and accessibility failures.
 - **License preservation:** Reused/generated data ships with the upstream Apache 2.0 license and copyright attribution. Any generated-data changes are documented.
-- **Recommended toolkit:** Compose for Desktop is the default proposal for a compact, declarative, keyboard-friendly UI. If dependency size or packaging proves unacceptable in Phase 0, Swing is the permitted fallback; the engine and data contracts must remain unchanged.
+- **UI toolkit:** Compose for Desktop is the locked UI toolkit (2026-09-17). It matches the desired compact, polished utility UI and the owner's existing experience. The engine and data contracts remain UI-neutral; switching toolkits requires an explicit plan revision.
 
 ## 2. Goals and non-goals
 
@@ -350,23 +350,36 @@ No elevated permissions are required. Clipboard access is used only when the use
 
 ### Phase 0 - Design lock and prerequisites
 
-- [ ] Confirm the first release is a Windows desktop utility with a UI-neutral Kotlin/JVM core.
-- [ ] Verify available JDK, Kotlin/Gradle, Node, and Yarn versions on the development machine.
-- [ ] Lock Compose for Desktop or explicitly select Swing based on startup size, packaging, and styling requirements.
-- [ ] Pin the Valculator source commit used for the first dataset.
+Phase 0 findings as of 2026-09-17:
+
+- **Verified:** The Valculator checkout is on `main` at commit `0820b7aea090a6d91c8c14868c3d0c70a095456d`; its remote is `https://github.com/charlotte-hues/valculator.git`, and the working tree is clean.
+- **Verified:** Node `v24.16.0` is available and satisfies Valculator's declared Node `>=22.11` requirement.
+- **Verified:** Corepack provides Yarn `4.18.0`, matching the Valculator repository's bundled Yarn release.
+- **Verified:** Java `25.0.3` is installed.
+- **Verified:** The Valculator data source currently contains 90 TypeScript data files under `packages/data/src/data`.
+- **Verified:** `Minecraft.otf` is copied into `CatosResourceCalc/src/main/resources/fonts/Minecraft.otf` and matches the source file by SHA-256.
+- **Verified:** The Gradle `9.6.1` wrapper is present and `gradlew.bat --version` launches successfully on Java `25.0.3`. Standalone `gradle` and `kotlinc` commands remain unavailable, which is acceptable because the project will use the wrapper.
+- **Pending:** Exact batch/output semantics and the font's redistribution permission still require an explicit decision or verification.
+
+- [x] Confirm the first release is a Windows desktop utility with a UI-neutral Kotlin/JVM core.
+- [x] Verify available JDK, Kotlin/Gradle, Node, and Yarn versions on the development machine; record missing standalone Gradle/Kotlin commands as a prerequisite.
+- [x] Lock Compose for Desktop as the UI toolkit; retain a UI-neutral engine so a future toolkit change is contained.
+- [x] Pin the Valculator source commit used for the first dataset: `0820b7aea090a6d91c8c14868c3d0c70a095456d`.
 - [ ] Inspect all `packages/data` exports and document the exact batch/output interpretation for `crafts` and recipe stats.
 - [ ] Confirm the intended Apache 2.0 attribution format for generated data and add it to the project checklist.
 - [ ] **Verify:** A small design note records toolkit, toolchain versions, source commit, schema version, and batch rule.
 
 ### Phase 1 - Create the standalone project skeleton
 
-- [ ] Create `CatosResourceCalc/settings.gradle.kts` and `build.gradle.kts` with the selected Kotlin/JVM and UI dependencies.
-- [ ] Add the proposed package structure and a minimal launchable `Main.kt`.
-- [ ] Add a test task and a deterministic build command.
-- [ ] Add `.gitignore` entries for Gradle/build output and local generated scratch files.
+- [x] Add the Gradle `9.6.1` wrapper (`gradlew`, `gradlew.bat`, and `gradle/wrapper/*`) and verify `gradlew.bat --version` on Windows.
+- [x] Create `CatosResourceCalc/settings.gradle.kts` and `build.gradle.kts` with Kotlin/JVM `2.4.20`, Compose Desktop `1.12.0`, and the Kotlin Compose compiler plugin.
+- [x] Add the initial package structure, mocha theme, bundled Minecraft font loading, and a launchable static `Main.kt` utility-window shell.
+- [x] Add a test task and deterministic `gradlew.bat build` command; the initial project build succeeds.
+- [x] Add `.gitignore` entries for Gradle/build output, local tooling scratch files, IDE state, local settings/secrets, logs, and OS clutter while keeping the wrapper and bundled assets versioned.
 - [ ] Add `src/main/resources/LICENSE.valculator.txt` and source-attribution documentation.
-- [ ] Keep the copied `src/main/resources/fonts/Minecraft.otf` in the standalone repository and record its provenance/license status.
-- [ ] **Verify:** The empty application builds and launches on the target Windows development machine, and a clean checkout can reproduce the build.
+- [x] Keep the copied `src/main/resources/fonts/Minecraft.otf` in the standalone repository.
+- [ ] Record the font's provenance and redistribution-license status before a distributable release is produced.
+- [x] **Verify:** The static application builds and launches on the target Windows development machine with `gradlew.bat build` and `gradlew.bat run`.
 
 ### Phase 2 - Build the Valculator data exporter
 
@@ -425,7 +438,6 @@ No elevated permissions are required. Clipboard access is used only when the use
 
 ## 10. Open tuning points
 
-- **UI toolkit:** Compose for Desktop is recommended; select Swing if package size and dependency simplicity outweigh declarative UI ergonomics.
 - **Initial target platform:** Windows is the first target; Linux/macOS packaging can follow after the core is stable.
 - **Persistence:** MVP may reset the build plan on exit. Add a local saved plan only if repeated-session use requires it.
 - **Inventory subtraction:** Decide later whether the totals panel should accept owned quantities and show `needed = required - owned`.
